@@ -1,6 +1,4 @@
-from typing import Union
 from .graph import Graph
-from tqdm import tqdm
 
 
 def update_pagerank_one_iter(graph: Graph, d: float):
@@ -14,8 +12,5 @@ def update_pagerank_one_iter(graph: Graph, d: float):
     graph.normalize_pagerank()
 
 def compute_pagerank(graph: Graph, d: float, n_iter: int=100):
-    loop = tqdm(range(n_iter))
-    loop.set_description(f"Computing PageRank with damping_factor={d}")
-    
-    for i in loop:
+    for _ in range(n_iter):
         update_pagerank_one_iter(graph, d)
