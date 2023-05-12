@@ -1,7 +1,8 @@
-from typing import Union, List, Optional
-import numpy as np
+from typing import Union, List, Optional, Dict
+
 import networkx as nx
 import matplotlib.pyplot as plt
+import json
 
 from src.node import Node
 
@@ -59,12 +60,14 @@ class Graph:
         for node in self.nodes:
             G.add_node(node.name)
             node_labels[node.name] = f"{node.name} ({node.pagerank:.2f})"
+
             for child in node.children:
                 G.add_edge(node.name, child.name)
 
+        pageranks = [node.pagerank for node in self.nodes]
+
         pos = nx.spring_layout(G)
-        nx.draw(G, pos, with_labels=False, node_color="lightblue")
-        nx.draw_networkx_labels(G, pos, labels=node_labels, font_size=6)
+        nx.draw(G, pos, with_labels=True, node_color=pageranks, cmap=plt.cm.Blues)
 
         if figure_file:
             plt.savefig(figure_file)
@@ -80,6 +83,14 @@ class Graph:
         for node in self.nodes:
             node.pagerank /= pagerank_sum
 
-    def get_pagerank_list(self):
-        pagerank_list = np.asarray([node.pagerank for node in self.nodes], dtype='float32')
-        return np.round(pagerank_list, 3)
+    def get_pageranks(self, save_path: Optional[str]=None) -> Dict:
+
+        pageranks = {
+            node.name: round(node.pagerank, 3) for node in self.nodes
+        }
+
+        if save_path is not None:
+            with open(save_path, "w") as f:
+                json.dump(pageranks, f)
+
+        return pageranks
