@@ -58,7 +58,7 @@ class Graph:
 
         for node in self.nodes:
             G.add_node(node.name)
-            node_labels[node.name] = f"{node.name}\nPR={node.pagerank:.2f}"
+            node_labels[node.name] = f"{node.name} ({node.pagerank:.2f})"
             for child in node.children:
                 G.add_edge(node.name, child.name)
 
