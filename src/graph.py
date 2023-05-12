@@ -1,5 +1,7 @@
-from typing import Union, List
+from typing import Union, List, Optional
 import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
 
 from src.node import Node
 
@@ -48,9 +50,26 @@ class Graph:
         graph.sort_nodes()
         return graph
 
-    def display(self):
+    def visualize(self, figure_file: Optional[str] = None):
+        """Visualize the graph using networkx and matplotlib."""
+
+        G = nx.DiGraph()
+        node_labels = {}
+
         for node in self.nodes:
-            print(f"{node.name} links to {[child.name for child in node.children]}")
+            G.add_node(node.name)
+            node_labels[node.name] = f"{node.name}\nPR={node.pagerank:.2f}"
+            for child in node.children:
+                G.add_edge(node.name, child.name)
+
+        pos = nx.spring_layout(G)
+        nx.draw(G, pos, with_labels=False, node_color="lightblue")
+        nx.draw_networkx_labels(G, pos, labels=node_labels, font_size=6)
+
+        if figure_file:
+            plt.savefig(figure_file)
+            
+        plt.show()
 
     def sort_nodes(self):
         self.nodes.sort(key=lambda node: int(node.name))
