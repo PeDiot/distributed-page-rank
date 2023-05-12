@@ -1,6 +1,7 @@
 from typing import List
 import time 
-from src.graph import Graph
+import numpy as np
+from tqdm import tqdm
 
 
 def file_to_edges(fname) -> List:
@@ -17,14 +18,46 @@ def file_to_edges(fname) -> List:
     ]
     return edges
 
-def compute_time(func, return_results: bool=False, *args, **kwargs):
+
+def compute_time(func, n_repeat: int=50, return_results: bool=False, *args, **kwargs):
     """Returns the time taken to run a function."""
 
-    start_time = time.time()
-    result = func(*args, **kwargs)
-    end_time = time.time()
-    elapsed_time = end_time - start_time
+    times = []
+    loop = tqdm(range(n_repeat))
+
+    for _ in loop:
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        times.append(elapsed_time)
+    
+    res = {
+        "min": min(times),
+        "max": max(times),
+        "mean": np.mean(times),
+        "median": np.median(times), 
+        "std": np.std(times)
+    }
 
     if return_results:
-        return elapsed_time, result
-    return elapsed_time
+        return res, result
+    return res
+
+def generate_random_edges(n_edges: int) -> List: 
+    """Returns a list of random edges."""
+
+    edges = []
+    i = 0
+    while i < n_edges:
+        x = np.random.randint(0, n_edges)
+        y = np.random.randint(0, n_edges)
+
+        while x == y:
+            y = np.random.randint(0, n_edges)
+ 
+        if [x, y] not in edges:
+            edges.append([x, y])
+            i += 1
+
+    return edges
