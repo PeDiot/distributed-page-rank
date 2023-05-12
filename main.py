@@ -30,7 +30,7 @@ def main(graph_number: int, d: float, n_iter: int, save: bool):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-n", "--graph_number", default=1)
-parser.add_argument("-d", "--d", default=0.15)
+parser.add_argument("-d", "--d", default=0.85)
 parser.add_argument("-n_iter", "--n_iter", default=100)
 parser.add_argument("-save", "--save", default=False)
 args = parser.parse_args()

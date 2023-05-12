@@ -32,10 +32,10 @@ class Node:
         """Update the pagerank of the node.
         
         Args:
-            d (float): Damping factor, probability of randomly walking out the links.
+            d (float): Damping factor, 1 - probability of randomly walking out the links.
             n (int): Number of nodes in the graph."""
         
         in_neighbors = self.parents
         pagerank_sum = sum((node.pagerank / len(node.children)) for node in in_neighbors)
-        random_jumping = d / n
-        self.pagerank = random_jumping + (1-d) * pagerank_sum
+        random_jumping = (1 - d) / n
+        self.pagerank = random_jumping + d * pagerank_sum
