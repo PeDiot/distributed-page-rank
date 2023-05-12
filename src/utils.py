@@ -1,4 +1,5 @@
 from typing import List
+import time 
 from src.graph import Graph
 
 
@@ -15,3 +16,15 @@ def file_to_edges(fname) -> List:
         line.strip().split(",") for line in lines
     ]
     return edges
+
+def compute_time(func, return_results: bool=False, *args, **kwargs):
+    """Returns the time taken to run a function."""
+
+    start_time = time.time()
+    result = func(*args, **kwargs)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
+    if return_results:
+        return elapsed_time, result
+    return elapsed_time

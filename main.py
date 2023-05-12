@@ -6,7 +6,7 @@ Initial PR values: [1. 1. 1. 1. 1. 1.]
 Computing PageRank with damping_factor=0.15: 100%|███████████████████████████████████████| 100/100 [00:00<00:00, 37858.15it/s]
 Updated PR values with d=0.15 after 100 iterations: [0.061 0.112 0.156 0.193 0.225 0.252]"""
 
-from src.utils import file_to_edges
+from src.utils import file_to_edges, compute_time
 from src.graph import Graph
 from src.pagerank import compute_pagerank
 
@@ -19,8 +19,9 @@ def main(graph_number: int, d: float, n_iter: int, save: bool):
 
     rich.print(f"Initial PR values: {graph.get_pagerank_list()}")
 
-    compute_pagerank(graph, 0.15, 100)
+    time = compute_time(compute_pagerank, graph=graph, d=d, n_iter=100) 
     rich.print(f"Updated PR values with {d=} after {n_iter} iterations: {graph.get_pagerank_list()}") 
+    rich.print(f"Time taken to compute PageRank: {time:.3f} seconds")
 
     if save:
         graph.visualize(figure_file=f"figs/graph_{graph_number}.png")
