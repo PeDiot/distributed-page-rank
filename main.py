@@ -7,8 +7,9 @@ import rich
 edges = file_to_edges("datasets/graph_1.txt")
 graph = Graph.from_edges(edges)
 
-rich.print(graph.display()) 
 rich.print(graph.get_pagerank_list())
 
-compute_pagerank(graph, 0.85, 10)
+compute_pagerank(graph, 0.15, 100)
 rich.print(graph.get_pagerank_list()) 
+
+graph.visualize(figure_file="figs/graph_1.png")
