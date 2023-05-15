@@ -18,28 +18,27 @@ def pagerank_update(neighbors: np.ndarray, pr: np.ndarray, out_degree: np.ndarra
     out_pr = np.multiply(neighbors, pr) / out_degree
     return damping_factor * np.sum(out_pr) + (1 - damping_factor) / N
 
-def pagerank_csr_one_iter(graph_csr: scipy.sparse.csr.csr_matrix, pr: np.ndarray, out_degree: np.ndarray, damping_factor: float, N: int) -> np.ndarray:
-    """Computes the PageRank score of each node in the graph from adjacency matrix in CSR format for one iteration.
+def pagerank_one_node(node: int, graph_csr: scipy.sparse.csr.csr_matrix, pr: np.ndarray, out_degree: np.ndarray, damping_factor: float, N: int): 
+    """Updates the PageRank score of a node.
 
     Args:
+        node (int): The node index.
         graph_csr (scipy.sparse.csr.csr_matrix): The adjacency matrix of the graph in CSR format.
-        pr (np.ndarray): The PageRank scores of each node in the graph.
-        out_degree (np.ndarray): The out degree of each node in the graph.
+        pr (np.ndarray): The PageRank scores of the nodes.
+        out_degree (np.ndarray): The out degree of the nodes.
         damping_factor (float): The damping factor.
         N (int): The number of nodes in the graph.
     
     Returns:
-        np.ndarray: The PageRank scores of each node in the graph."""
+        float: The updated PageRank score of the node."""
 
-    for i, _ in enumerate(pr):
-        row_indices = slice(graph_csr.indptr[i], graph_csr.indptr[i+1])
-        neighbors = graph_csr.data[row_indices]
-        pr_neighbors = pr[graph_csr.indices[row_indices]]
-        out_degree_neighbors = out_degree[graph_csr.indices[row_indices]]
+    row_indices = slice(graph_csr.indptr[node], graph_csr.indptr[node+1])
+    neighbors = graph_csr.data[row_indices]
+    pr_neighbors = pr[graph_csr.indices[row_indices]]
+    out_degree_neighbors = out_degree[graph_csr.indices[row_indices]]
 
-        pr[i] = pagerank_update(neighbors, pr_neighbors, out_degree_neighbors, damping_factor, N)
-
-    return pr
+    pr_node = pagerank_update(neighbors, pr_neighbors, out_degree_neighbors, damping_factor, N)
+    return pr_node 
 
 def compute_pagerank_from_coo(graph_coo: scipy.sparse.coo.coo_matrix, damping_factor: float=.85, max_iter: int=100, tol: float=1e-6) -> np.ndarray:
     """Computes the PageRank score of each node in the graph from adjacency matrix in COO format.
@@ -62,7 +61,9 @@ def compute_pagerank_from_coo(graph_coo: scipy.sparse.coo.coo_matrix, damping_fa
 
     for _ in range(max_iter):
         prev_pr = pr.copy()
-        pr = pagerank_csr_one_iter(graph_csr, prev_pr, out_degree, damping_factor, N)
+
+        for node in range(N):
+            pr[node] = pagerank_one_node(node, graph_csr, pr, out_degree, damping_factor, N)
 
         if np.abs(prev_pr - pr).max() < tol:
             break

@@ -27,9 +27,16 @@ def update_pagerank_one_iter(graph: Graph, damping_factor: float):
     graph.normalize_pagerank()
 
 def compute_pagerank(graph: Graph, damping_factor: float, max_iter: int=100):
+    """Update the PageRank score of each node in the graph.
+
+    Args:
+        graph (Graph): The graph.
+        damping_factor (float): The damping factor.
+        max_iter (int): The maximum number of iterations. Default is 100."""
+
     for _ in range(max_iter):
-        update_pagerank_one_iter(graph, damping_factor)
         prev_pagerank = graph.get_pageranks()
+        update_pagerank_one_iter(graph, damping_factor)
 
         if np.abs(prev_pagerank - graph.get_pageranks()).max() < 1e-6:
             break
