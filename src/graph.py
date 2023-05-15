@@ -1,11 +1,59 @@
 from typing import Union, List, Optional, Dict
-
-import networkx as nx
-import matplotlib.pyplot as plt
-import json
+import numpy as np
+import scipy.sparse
 
 from src.node import Node
 
+
+def generate_random_edges(n_edges: int) -> List: 
+    """Returns a list of random edges."""
+
+    edges = []
+    i = 0
+    while i < n_edges:
+        x = np.random.randint(0, n_edges)
+        y = np.random.randint(0, n_edges)
+
+        while x == y:
+            y = np.random.randint(0, n_edges)
+ 
+        if [x, y] not in edges:
+            edges.append([x, y])
+            i += 1
+
+    return edges
+
+def generate_random_adjacency_matrix(n_nodes: int, min_conn_per_node: int) -> scipy.sparse.coo_matrix: 
+    """Generates a connected graph with a specified number of nodes and minimum number of connections per node using a random algorithm.
+
+    Parameters:
+        n_nodes (int): The number of nodes in the graph.
+        min_conn_per_node (int): The minimum number of connections per node.
+
+    Returns:
+        scipy.sparse.coo_matrix: The adjacency matrix of the generated graph in COO format."""
+
+    graph = np.zeros((n_nodes, n_nodes))
+    for i in range(n_nodes):
+        graph[i, i] = 1
+
+    while True:
+        if (graph.sum(axis=1) >= min_conn_per_node).all():
+            break
+
+        node = np.random.choice(np.where(graph.sum(axis=1) < min_conn_per_node)[0])
+
+        while graph[node].sum() < min_conn_per_node:
+            connect_to = np.random.randint(0, n_nodes)
+
+            if graph[node, connect_to] == 1 or graph[connect_to, node] == 1:
+                continue
+
+            graph[node, connect_to] = 1
+            graph[connect_to, node] = 1
+
+    coo = scipy.sparse.coo_matrix(graph)
+    return coo
 
 class Graph:
     def __init__(self):
@@ -50,47 +98,30 @@ class Graph:
 
         graph.sort_nodes()
         return graph
+    
+    @classmethod
+    def from_adjacency_matrix(cls, adjacency_matrix: np.ndarray) -> "Graph":
+        """Returns a graph object from an adjacency matrix."""
+        graph = cls()
 
-    def visualize(self, figure_file: Optional[str] = None):
-        """Visualize the graph using networkx and matplotlib."""
+        for i in range(adjacency_matrix.shape[0]):
+            parent = i
+            for j in range(i + 1, adjacency_matrix.shape[1]):
+                child = j
+                if adjacency_matrix[i, j] == 1:
+                    graph.add_edge(parent, child)
 
-        G = nx.DiGraph()
-        node_labels = {}
-
-        for node in self.nodes:
-            G.add_node(node.name)
-            node_labels[node.name] = f"{node.name} ({node.pagerank:.2f})"
-
-            for child in node.children:
-                G.add_edge(node.name, child.name)
-
-        pageranks = [node.pagerank for node in self.nodes]
-
-        pos = nx.spring_layout(G)
-        nx.draw(G, pos, with_labels=True, node_color=pageranks, cmap=plt.cm.Blues)
-
-        if figure_file:
-            plt.savefig(figure_file)
-            
-        plt.show()
+        graph.sort_nodes()
+        return graph
 
     def sort_nodes(self):
         self.nodes.sort(key=lambda node: int(node.name))
 
+    def get_pageranks(self) -> np.ndarray:
+        return np.array([node.pagerank for node in self.nodes])
+
     def normalize_pagerank(self):
-        pagerank_sum = sum(node.pagerank for node in self.nodes)
+        pagerank_sum = np.sum(self.get_pageranks())
 
         for node in self.nodes:
             node.pagerank /= pagerank_sum
-
-    def get_pageranks(self, save_path: Optional[str]=None) -> Dict:
-
-        pageranks = {
-            node.name: round(node.pagerank, 3) for node in self.nodes
-        }
-
-        if save_path is not None:
-            with open(save_path, "w") as f:
-                json.dump(pageranks, f)
-
-        return pageranks

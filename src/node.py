@@ -27,14 +27,3 @@ class Node:
             if(parent.name == new_parent.name):
                 return None
         self.parents.append(new_parent)
-
-    def update_pagerank(self, d: float, n: int):
-        """Update the pagerank of the node.
-        
-        Args:
-            d (float): Damping factor, 1 - probability of randomly walking out the links.
-            n (int): Number of nodes in the graph."""
-        
-        pagerank_sum = sum((node.pagerank / len(node.children)) for node in self.parents)
-        random_jumping = (1 - d) / n
-        self.pagerank = random_jumping + d * pagerank_sum
