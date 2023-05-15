@@ -51,6 +51,15 @@ def compute_time(func, n_repeat: int=50, return_results: bool=False, *args, **kw
         return res, result
     return res
 
+def compute_mse(x: np.ndarray, y: np.ndarray) -> float:
+    """Returns the mean squared error between two arrays."""
+
+    if len(x) != len(y):
+        raise ValueError("Arrays must be of same length")
+
+    mse = np.sum((x - y) ** 2) / len(x)
+    return mse
+
 def visualize_graph(graph: Graph, figure_file: Optional[str] = None):
     """Visualize the graph using networkx and matplotlib."""
 
