@@ -1,36 +1,62 @@
-from typing import List, Optional, Dict
+from typing import Optional, Dict, Callable, List
 
 import numpy as np
-import networkx as nx
-import matplotlib.pyplot as plt
-
+import pandas as pd
+from tqdm import tqdm 
 import time 
-from tqdm import tqdm
+import os 
+
 import json
-
-from src.graph import Graph
-
-
-def file_to_edges(fname) -> List:
-    """Returns a list of edges from txt file."""
-
-    if not fname.endswith(".txt"):
-        raise ValueError("File must be a .txt file")
-
-    with open(fname) as f:
-        lines = f.readlines()
-
-    edges = [
-        line.strip().split(",") for line in lines
-    ]
-    return edges
+import yaml
+from yaml import Loader
 
 
-def compute_time(func, n_repeat: int=50, return_results: bool=False, *args, **kwargs):
-    """Returns the time taken to run a function."""
+def to_json(results: Dict, dir_path: str, file_name: str) -> None: 
+
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+    file_path = os.path.join(dir_path, file_name)
+
+    with open(file_path, "w") as f:
+        json.dump(results, f)
+
+    print(f"Saved results to {file_path}.")
+
+def from_json(dir_path: str, file_name: str) -> Dict: 
+    file_path = os.path.join(dir_path, file_name)
+
+    with open(file_path, "r") as f:
+        results = json.load(f)
+
+    return results
+
+def load_config(cfg_path: str) -> Dict:
+    """Load yaml configuration file."""
+    
+    with open(cfg_path, "r") as ymlfile:
+        cfg = yaml.load(ymlfile, Loader)
+
+    return cfg
+
+def measure_time(func: Callable, n_repeat: int=50, return_results: bool=False, desc: Optional[str]=None, *args, **kwargs):
+    """Returns the time taken to run a function n_repeat times.
+    
+    Args:
+        func (Callable): The function to run.
+        n_repeat (int): The number of times to run the function.
+        return_results (bool): Whether to return the results of the function. Defaults to False.
+        desc (str): A description to display in the progress bar.
+        *args: Arguments to pass to the function.
+        **kwargs: Keyword arguments to pass to the function.
+        
+    Returns:
+        Dict: A dictionary containing the minimum, maximum, mean, median, and standard deviation of the time taken to run the function.
+        Any results returned by the function."""    
 
     times = []
     loop = tqdm(range(n_repeat))
+    loop.set_description(desc)
 
     for _ in loop:
         start_time = time.time()
@@ -39,7 +65,7 @@ def compute_time(func, n_repeat: int=50, return_results: bool=False, *args, **kw
         elapsed_time = end_time - start_time
         times.append(elapsed_time)
     
-    res = {
+    time_result = {
         "min": min(times),
         "max": max(times),
         "mean": np.mean(times),
@@ -48,8 +74,9 @@ def compute_time(func, n_repeat: int=50, return_results: bool=False, *args, **kw
     }
 
     if return_results:
-        return res, result
-    return res
+        return time_result, result
+    
+    return time_result
 
 def compute_mse(x: np.ndarray, y: np.ndarray) -> float:
     """Returns the mean squared error between two arrays."""
@@ -60,38 +87,48 @@ def compute_mse(x: np.ndarray, y: np.ndarray) -> float:
     mse = np.sum((x - y) ** 2) / len(x)
     return mse
 
-def visualize_graph(graph: Graph, figure_file: Optional[str] = None):
-    """Visualize the graph using networkx and matplotlib."""
-
-    G = nx.DiGraph()
-    node_labels = {}
-
-    for node in graph.nodes:
-        G.add_node(node.name)
-        node_labels[node.name] = f"{node.name} ({node.pagerank:.2f})"
-
-        for child in node.children:
-            G.add_edge(node.name, child.name)
-
-    pageranks = [node.pagerank for node in graph.nodes]
-
-    pos = nx.spring_layout(G)
-    nx.draw(G, pos, with_labels=True, node_color=pageranks, cmap=plt.cm.Blues)
-
-    if figure_file:
-        plt.savefig(figure_file)
+def flatten_results(results: Dict) -> List:
+    """Flattens the results of an experiment into a list of dictionaries.
+    
+    Args:
+        results (Dict): The results of an experiment.
         
-    plt.show()
+    Returns:
+        List: A list of dictionaries containing the results of the experiment per method."""
 
-def pageranks_to_dict(graph: Graph, save_path: Optional[str]=None) -> Dict:
-    """Returns a dictionary of node names and pagerank values."""
+    results_flat = []
 
-    pageranks = {
-        node.name: round(node.pagerank, 3) for node in graph.nodes
-    }
+    for method in ["numpy", "cython"]:
+        row = {
+            "method": method,
+            "n_nodes": results["n_nodes"],
+            "min_conn_per_node": results["min_conn_per_node"],
+            "max_iter": results["max_iter"],
+            "min_time": results[f"time_{method}"]["min"],
+            "max_time": results[f"time_{method}"]["max"],
+            "mean_time": results[f"time_{method}"]["mean"],
+            "median_time": results[f"time_{method}"]["median"],
+            "std_time": results[f"time_{method}"]["std"]
+        }
+        results_flat.append(row)  
 
-    if save_path is not None:
-        with open(save_path, "w") as f:
-            json.dump(pageranks, f)
+    return results_flat
 
-    return pageranks
+def dict_to_dataframe(results: Dict) -> pd.DataFrame:
+    """Converts the results of an experiment into a pandas DataFrame.
+    
+    Args:
+        results (Dict): The results of an experiment.
+        
+    Returns:
+        pd.DataFrame: A pandas DataFrame containing the results of the experiment per method."""
+    
+    df = pd.DataFrame(
+        columns=["method", "n_nodes", "min_conn_per_node", "max_iter", "min_time", "max_time", "mean_time", "median_time", "std_time"]
+    )
+
+    for item in results:    
+        item_flat = flatten_results(item)
+        df = df.append(item_flat, ignore_index=True)
+        
+    return df
