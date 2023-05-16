@@ -32,6 +32,7 @@ def compute_pagerank_cython(graph_coo: scipy.sparse.coo_matrix, damping_factor: 
 
     Returns:
         numpy.ndarray: The PageRank scores of each node in the graph."""
+        
     graph_csr = graph_coo.tocsr()
     cdef int N = graph_csr.shape[0]
 
