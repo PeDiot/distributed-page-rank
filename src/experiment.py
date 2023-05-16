@@ -1,6 +1,6 @@
-from typing import Optional, List, Union, Dict, Callable
+from typing import List, Union, Callable
 from src.graph import generate_random_adjacency_matrix
-from src.utils import measure_time, compute_mse
+from src.utils import measure_time
 
 
 class Experiment: 
@@ -75,55 +75,54 @@ class Experiment:
     
     def __str__(self) -> str:
         return self.__repr__()
+    
+    def init_graph_memory(self): 
+        self.graphs = {}
 
-    def run(self, pagerank_methods: Dict[str, Callable], n_repeat: int, *args, **kwargs) -> List: 
+    def run(self, pagerank_method: Callable, n_repeat: int=50, *args, **kwargs) -> List: 
         """Runs the experiment for different pagerank computation methods.
 
         Args:
-            pagerank_methods: A dictionary of pagerank computation methods to use.
-            n_repeat: The number of times to repeat the experiment.
+            pagerank_methods (Callable): The pagerank computation method to use.
+            n_repeat (int): The number of times to repeat the experiment. Defaults to 50.
 
         Returns:
-            A list of dictionaries containing the results of the experiment."""
+            List: A list containing the time measurements and the pangerank values."""
         
         results = []
+
+        method_name = pagerank_method.__name__.split("_")[-1]
 
         for attrs in self.attrs_list:
             n_nodes = attrs["n_nodes"]
             min_conn_per_node = attrs["min_conn_per_node_prop"]
             max_iter = attrs["max_iter"]
+            
+            info = {
+                "n_nodes": n_nodes,
+                "min_conn_per_node": min_conn_per_node,
+                "max_iter": max_iter,
+            }
+            results.append(info)
 
-            results.append(
-                {
-                    "n_nodes": n_nodes,
-                    "min_conn_per_node": min_conn_per_node,
-                    "max_iter": max_iter,
-                }
-            )
+            key = f"{n_nodes}_{min_conn_per_node}_{max_iter}"
 
-            pageranks = {}
+            if not key in self.graphs:
+                graph_coo = generate_random_adjacency_matrix(n_nodes=n_nodes, min_conn_per_node=min_conn_per_node)
+                self.graphs[key] = graph_coo            
 
-            graph_coo = generate_random_adjacency_matrix(n_nodes=n_nodes, min_conn_per_node=min_conn_per_node)
+            desc = f"{method_name} | {n_nodes=}  | {min_conn_per_node=} | {max_iter=}"
+            time, values = measure_time(
+                pagerank_method,
+                graph_coo=self.graphs[key],
+                max_iter=max_iter,
+                return_results=True,
+                desc=desc, 
+                n_repeat=n_repeat,
+                *args,
+                **kwargs)
 
-            for method, fun in pagerank_methods.items():
-                desc = f"{method} | {n_nodes=}  | {min_conn_per_node=} | {max_iter=}"
-                time, values = measure_time(
-                    fun,
-                    graph_coo=graph_coo,
-                    max_iter=max_iter,
-                    return_results=True,
-                    desc=desc, 
-                    *args,
-                    **kwargs)
-
-                pageranks[method] = values
-                results[-1][f"time_{method}"] = time
-
-            if len(pageranks) > 1:
-                try: 
-                    mse_cython = compute_mse(pageranks["numpy"], pageranks["cython"])
-                    results[-1]["mse_cython"] = mse_cython
-                except KeyError:
-                    pass
+            results[-1][f"time_{method_name}"] = time
+            results[-1][f"pagerank_{method_name}"] = values.tolist()
             
         return results
