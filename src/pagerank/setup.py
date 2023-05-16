@@ -2,10 +2,18 @@
 
 python setup.py build_ext --inplace"""
 
-from setuptools import setup
+from distutils.core import setup
+from distutils.extension import Extension
 from Cython.Build import cythonize
+import numpy
+
+extensions = [
+    Extension("pagerank_cython", ["pagerank_cython.pyx"],
+              include_dirs=[numpy.get_include()])
+]
 
 setup(
-    ext_modules=cythonize("cpp_parallel.pyx")
+    ext_modules=cythonize(extensions)
 )
+
 
