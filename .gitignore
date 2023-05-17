@@ -1,3 +1,6 @@
 __pycache__/
 notebook.ipynb
 backup/
+*.c 
+*.obj 
+*.pyd
