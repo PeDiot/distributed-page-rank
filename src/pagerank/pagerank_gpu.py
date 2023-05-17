@@ -36,11 +36,11 @@ def make_pagerank_kernel(num_nodes: int) -> cuda.Function:
     pagerank_kernel = SourceModule(pagerank_kernel_code).get_function("pagerank_kernel")
     return pagerank_kernel
 
-def compute_pagerank_gpu(graph: scipy.sparse.coo_matrix, damping_factor: float=.85, max_iter: int=100):
+def compute_pagerank_gpu(graph_coo: scipy.sparse.coo_matrix, damping_factor: float=.85, max_iter: int=100):
     """Computes the PageRank score of each node in the graph with GPU parallelization using PyCUDA.
 
     Parameters:
-        graph (scipy.sparse.csr_matrix): The adjacency matrix of the graph in CSR format.
+        graph_coo (scipy.sparse.csr_matrix): The adjacency matrix of the graph in COO format.
         damping_factor (float): The damping factor. Default is 0.85.
         max_iter (int): The maximum number of iterations. Default is 100.
         tol (float): The tolerance for convergence. Default is 1e-6.
@@ -48,7 +48,7 @@ def compute_pagerank_gpu(graph: scipy.sparse.coo_matrix, damping_factor: float=.
     Returns:
         numpy.ndarray: The PageRank scores of each node in the graph."""
 
-    graph = graph.tocsr()
+    graph = graph_coo.tocsr()
     num_nodes = graph.shape[0]
 
     edges = graph.indices.astype(np.int32)
