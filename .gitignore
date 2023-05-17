@@ -4,3 +4,4 @@ backup/
 *.c 
 *.obj 
 *.pyd
+build/
