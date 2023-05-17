@@ -1,4 +1,6 @@
 from typing import List, Union, Callable
+
+import numpy as np 
 from src.graph import generate_random_adjacency_matrix
 from src.utils import measure_time
 
@@ -121,6 +123,9 @@ class Experiment:
                 n_repeat=n_repeat,
                 *args,
                 **kwargs)
+            
+            if method_name == "cython":
+                values = np.asarray(values)
 
             results[-1][f"time_{method_name}"] = time
             results[-1][f"pagerank_{method_name}"] = values.tolist()
