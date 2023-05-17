@@ -8,12 +8,18 @@ from Cython.Build import cythonize
 import numpy
 
 extensions = [
-    Extension("pagerank_cython", ["pagerank_cython.pyx"],
-              include_dirs=[numpy.get_include()])
+    Extension(
+        "pagerank_cython", 
+        ["pagerank_cython.pyx"],
+        include_dirs=[numpy.get_include()], 
+        extra_compile_args=["-openmp"],         # fopenmp for Linux
+        extra_link_args=["-openmp"]
+    )
 ]
 
 setup(
-    ext_modules=cythonize(extensions)
+    ext_modules=cythonize(extensions), 
+    include_dirs=[numpy.get_include()]
 )
 
 
