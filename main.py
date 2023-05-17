@@ -13,6 +13,10 @@ import argparse
 
 
 def main(type: str): 
+    """Run an experiment or evaluate the results of an experiment.
+    
+    Args:
+        type (str): The type of the experiment. Either 'exp' or 'eval'."""
     
     cfg = load_config("config.yaml") 
     n_nodes, min_conn_per_node, max_iter = cfg["n_nodes"], cfg["min_conn_per_node"], cfg["max_iter"]
