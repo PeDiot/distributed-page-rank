@@ -1,70 +1,69 @@
+import numpy as np
 import pycuda.driver as cuda
 import pycuda.autoinit
 from pycuda.compiler import SourceModule
-
 import scipy.sparse
-import numpy as np
 
+pagerank_kernel_code = """
+__global__ void pagerank_kernel(float* pagerank_vector, const int *edges, const int *indptr, 
+                                const int *out_degree, const float damping_factor, const int num_nodes) {   
 
-def make_pagerank_kernel(num_nodes: int) -> cuda.Function: 
-    """Creates the CUDA kernel for the PageRank algorithm.
-    
-    Parameters:
-        num_nodes (int): The number of nodes in the graph.
-        
-    Returns:
-        pycuda.driver.Function: The CUDA kernel for the PageRank algorithm."""
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
-    pagerank_kernel_code = """
-        __global__ void pagerank_kernel(float *pageranks, const int *edges, const int *indptr, const int *out_degrees, const float damping_factor)
-        {
-            const int i = blockIdx.x * blockDim.x + threadIdx.x;
-            const int num_nodes = %(num_nodes)s;
-            const float one_minus_damping = 1.0f - damping_factor;
-
-            if (i < num_nodes) {
-                float sum = 0.0f;
-                for (int j = indptr[i]; j < indptr[i+1]; j++) {
-                    const int neighbor = edges[j];
-                    const int neighbor_degree = out_degrees[neighbor];
-                    sum += pageranks[neighbor] / neighbor_degree;
-                }
-                pageranks[i] = one_minus_damping / num_nodes + damping_factor * sum;
-            }
+    if (tid < num_nodes) {
+        float sum = 0.0f;
+        for (int j = indptr[tid]; j < indptr[tid+1]; j++) {
+            const int neighbor = edges[j];
+            const int neighbor_degree = out_degree[neighbor];
+            sum += pagerank_vector[neighbor] / neighbor_degree;
         }
-    """ % {"num_nodes": num_nodes}
-    pagerank_kernel = SourceModule(pagerank_kernel_code).get_function("pagerank_kernel")
-    return pagerank_kernel
+        pagerank_vector[tid] = damping_factor * sum + (1.0f - damping_factor) / num_nodes;
+    }
+}
+"""
 
-def compute_pagerank_gpu(graph_coo: scipy.sparse.coo_matrix, damping_factor: float=.85, max_iter: int=100):
-    """Computes the PageRank score of each node in the graph with GPU parallelization using PyCUDA.
+def compute_pagerank_gpu(graph_coo: scipy.sparse.coo_matrix, damping_factor: float=0.85, max_iter: int=100, block_size: int=32):
+    """Compute the pagerank of a graph using the GPU parallelization. 
+    
+    Args:
+        graph_coo (scipy.sparse.coo_matrix): The graph in COO format.
+        damping_factor (float, optional): The damping factor. Defaults to 0.85.
+        max_iter (int, optional): The maximum number of iterations. Defaults to 100.
+        block_size (int, optional): The block size for the GPU kernel. Defaults to 256."""
 
-    Parameters:
-        graph_coo (scipy.sparse.csr_matrix): The adjacency matrix of the graph in COO format.
-        damping_factor (float): The damping factor. Default is 0.85.
-        max_iter (int): The maximum number of iterations. Default is 100.
-        tol (float): The tolerance for convergence. Default is 1e-6.
-
-    Returns:
-        numpy.ndarray: The PageRank scores of each node in the graph."""
-
+    num_nodes = graph_coo.shape[0]
     graph = graph_coo.tocsr()
-    num_nodes = graph.shape[0]
 
     edges = graph.indices.astype(np.int32)
     indptr = graph.indptr.astype(np.int32)
-    out_degrees = np.diff(indptr).astype(np.int32)
+    out_degree = np.diff(indptr).astype(np.int32)
 
-    pageranks = np.ones(num_nodes, dtype=np.float32) / num_nodes
-    last_pageranks = np.zeros(num_nodes, dtype=np.float32)
-    pagerank_kernel = make_pagerank_kernel(num_nodes)
+    # Put graph attributes on GPU
+    edges_gpu, indptr_gpu, out_degree_gpu = cuda.In(edges), cuda.In(indptr), cuda.In(out_degree)
+
+    pagerank_vector = np.ones(num_nodes, dtype=np.float32) / num_nodes
+    # Create bidirectional data transfer between the CPU and GPU
+    pagerank_vector_gpu = cuda.InOut(pagerank_vector)
+    
+    # Compile CUDA kernel and get block size
+    pagerank_kernel = SourceModule(pagerank_kernel_code).get_function("pagerank_kernel")
+    grid_size = (num_nodes + block_size - 1) // block_size
 
     for _ in range(max_iter):
-        pagerank_kernel(cuda.InOut(pageranks), cuda.In(edges), cuda.In(indptr), cuda.In(out_degrees), np.float32(damping_factor))    
-        last_pageranks[:] = pageranks
+        pagerank_kernel( 
+            pagerank_vector_gpu, 
+            edges_gpu,
+            indptr_gpu, 
+            out_degree_gpu,
+            np.float32(damping_factor),
+            np.int32(num_nodes), 
+            block=(block_size, 1, 1), 
+            grid=(grid_size, 1))
         
-    pageranks_sum = pageranks.sum()
-    if pageranks_sum > 0:
-        pageranks /= pageranks_sum
+        cuda.Context.synchronize()
 
-    return pageranks
+    pagerank_sum = np.sum(pagerank_vector)
+    if pagerank_sum > 0:
+        pagerank_vector /= np.sum(pagerank_vector)
+
+    return pagerank_vector
