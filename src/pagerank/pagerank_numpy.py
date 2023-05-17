@@ -40,7 +40,7 @@ def pagerank_one_node(node: int, graph_csr: scipy.sparse.csr.csr_matrix, pr: np.
     pr_node = pagerank_update(neighbors, pr_neighbors, out_degree_neighbors, damping_factor, N)
     return pr_node 
 
-def compute_pagerank_numpy(graph_coo: scipy.sparse.coo.coo_matrix, damping_factor: float=.85, max_iter: int=100, tol: float=1e-6) -> np.ndarray:
+def compute_pagerank_numpy(graph_coo: scipy.sparse.coo.coo_matrix, damping_factor: float=.85, max_iter: int=100) -> np.ndarray:
     """Computes the PageRank score of each node in the graph from adjacency matrix in COO format.
     
     Args:
@@ -50,8 +50,7 @@ def compute_pagerank_numpy(graph_coo: scipy.sparse.coo.coo_matrix, damping_facto
         tol (float): The tolerance for convergence. Default is 1e-6.
 
     Returns:
-        np.ndarray: The PageRank scores of each node in the graph.
-    """
+        np.ndarray: The PageRank scores of each node in the graph."""
 
     graph_csr = graph_coo.tocsr()
     N = graph_csr.shape[0]
@@ -64,8 +63,5 @@ def compute_pagerank_numpy(graph_coo: scipy.sparse.coo.coo_matrix, damping_facto
 
         for node in range(N):
             pr[node] = pagerank_one_node(node, graph_csr, pr, out_degree, damping_factor, N)
-
-        if np.abs(prev_pr - pr).max() < tol:
-            break
 
     return pr
