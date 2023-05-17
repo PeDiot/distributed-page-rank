@@ -16,7 +16,7 @@ def make_pagerank_kernel(num_nodes: int) -> cuda.Function:
         pycuda.driver.Function: The CUDA kernel for the PageRank algorithm."""
 
     pagerank_kernel_code = """
-        __global__ void pagerank_kernel(float *pageranks, const int *edges, const int *indptr, const int *out_degree, const float damping_factor)
+        __global__ void pagerank_kernel(float *pageranks, const int *edges, const int *indptr, const int *out_degrees, const float damping_factor)
         {
             const int i = blockIdx.x * blockDim.x + threadIdx.x;
             const int num_nodes = %(num_nodes)s;
@@ -26,10 +26,10 @@ def make_pagerank_kernel(num_nodes: int) -> cuda.Function:
                 float sum = 0.0f;
                 for (int j = indptr[i]; j < indptr[i+1]; j++) {
                     const int neighbor = edges[j];
-                    const int neighbor_degree = out_degree[neighbor];
+                    const int neighbor_degree = out_degrees[neighbor];
                     sum += pageranks[neighbor] / neighbor_degree;
                 }
-                pagerank[i] = one_minus_damping / num_nodes + damping_factor * sum;
+                pageranks[i] = one_minus_damping / num_nodes + damping_factor * sum;
             }
         }
     """ % {"num_nodes": num_nodes}
@@ -53,14 +53,14 @@ def compute_pagerank_gpu(graph_coo: scipy.sparse.coo_matrix, damping_factor: flo
 
     edges = graph.indices.astype(np.int32)
     indptr = graph.indptr.astype(np.int32)
-    out_degree = np.diff(indptr).astype(np.int32)
+    out_degrees = np.diff(indptr).astype(np.int32)
 
     pageranks = np.ones(num_nodes, dtype=np.float32) / num_nodes
     last_pageranks = np.zeros(num_nodes, dtype=np.float32)
     pagerank_kernel = make_pagerank_kernel(num_nodes)
 
     for _ in range(max_iter):
-        pagerank_kernel(cuda.InOut(pageranks), cuda.In(edges), cuda.In(indptr), cuda.In(out_degree), np.float32(damping_factor))    
+        pagerank_kernel(cuda.InOut(pageranks), cuda.In(edges), cuda.In(indptr), cuda.In(out_degrees), np.float32(damping_factor))    
         last_pageranks[:] = pageranks
         
     pageranks_sum = pageranks.sum()
