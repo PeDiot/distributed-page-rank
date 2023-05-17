@@ -1,6 +1,6 @@
 """Setup file to compile cpu_parallel.pyx with Cython.
 
-python setup.py build_ext --inplace"""
+Run `python setup.py build_ext --inplace` to compile the Cython code."""
 
 from distutils.core import setup
 from distutils.extension import Extension
@@ -12,8 +12,8 @@ extensions = [
         "pagerank_cython", 
         ["pagerank_cython.pyx"],
         include_dirs=[numpy.get_include()], 
-        extra_compile_args=["-openmp"],         # fopenmp for Linux
-        extra_link_args=["-openmp"]
+        extra_compile_args=["-fopenmp"],         # openmp for Windows
+        extra_link_args=["-fopenmp"]
     )
 ]
 
