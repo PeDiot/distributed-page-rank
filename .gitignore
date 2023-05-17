@@ -1,5 +1,5 @@
 __pycache__/
-notebook.ipynb
+notebook_gpu.ipynb
 backup/
 *.c 
 *.obj 
