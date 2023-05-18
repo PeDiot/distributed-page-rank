@@ -1,5 +1,6 @@
 from typing import Union, List, Tuple, Optional
 
+import os
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -9,7 +10,7 @@ def plot_computation_times(
     results: Union[pd.DataFrame, List[pd.DataFrame]], 
     x_var: str, 
     title: Optional[str]=None, 
-    save_path: Optional[str]=None, 
+    file_name: Optional[str]=None, 
     fig_dims: Tuple=(18, 14), 
     show_plot: bool=False
 ) -> None:
@@ -19,7 +20,7 @@ def plot_computation_times(
         results: A list of dictionaries containing the results of the experiment.
         x_var: The variable to plot on the x-axis (n_nodes, min_conn_per_node, or max_iter)
         title: The title of the plot.
-        save_path: The path to save the plot to. If None, the plot is not saved.
+        file_name: The file name to save the plot to. If None, the plot is not saved.
         fig_dims: The dimensions of the plot.
         show_plot: Whether to show the plot or not."""
     
@@ -44,7 +45,11 @@ def plot_computation_times(
 
     fig.delaxes(axes.flatten()[-1])
     
-    if save_path is not None:
+    if file_name is not None:
+        save_path = f"figs/time"
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        save_path = os.path.join(save_path, file_name)
         plt.savefig(save_path)
 
     if show_plot:
@@ -54,7 +59,7 @@ def plot_mse(
     df: pd.DataFrame, 
     x_var: str, 
     title: Optional[str]=None, 
-    save_path: Optional[str]=None, 
+    file_name: Optional[str]=None, 
     fig_dims: Tuple=(9, 4), 
     show_plot: bool=False
 ) -> None: 
@@ -64,6 +69,7 @@ def plot_mse(
         df: A pandas DataFrame containing the results of the experiment.
         x_var: The variable to plot on the x-axis (n_nodes, min_conn_per_node, or max_iter)
         title: The title of the plot.
+        file_name: The file name to save the plot to. If None, the plot is not saved.
         fig_dims: The dimensions of the plot.
         show_plot: Whether to show the plot or not."""
 
@@ -74,7 +80,11 @@ def plot_mse(
 
     sns.lineplot(x=x_var, y="mse", hue="method", data=df, ax=ax)
 
-    if save_path is not None:
+    if file_name is not None:
+        save_path = f"figs/mse"
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        save_path = os.path.join(save_path, file_name)
         plt.savefig(save_path)
         
     if show_plot:
