@@ -113,29 +113,37 @@ def make_mse_table(results_per_method: Dict) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A pandas DataFrame containing the results of the experiment per method."""
     
+    if "base" not in results_per_method.keys():
+        raise ValueError("results_per_method must contain the base pagerank values.")
+    
+    if len(results_per_method) <= 1: 
+        raise ValueError("results_per_method must contain at least two methods.")
+    
     df = pd.DataFrame(
         columns=["method", "n_nodes", "min_conn_per_node", "max_iter", "mse"]
     )
 
-    numpy_pageranks = [
-        item["pagerank_numpy"] for item in results_per_method["numpy"]
+    base_pageranks = [
+        item["pagerank_base"] for item in results_per_method["base"]
     ]
+    n_base_experiments = len(base_pageranks)
 
     for method, values in results_per_method.items():  
 
-        if method == "numpy":
+        if method == "base":
             pass 
 
         else: 
-            for ix, item in enumerate(values) :
-                mse = compute_mse(item[f"pagerank_{method}"], numpy_pageranks[ix])
-                row = {
-                    "method": method,
-                    "n_nodes": item["n_nodes"],
-                    "min_conn_per_node": item["min_conn_per_node"],
-                    "max_iter": item["max_iter"],
-                    "mse": mse
-                }
-                df = df.append(row, ignore_index=True)     
+            for ix, item in enumerate(values):
+                if ix < n_base_experiments:
+                    mse = compute_mse(item[f"pagerank_{method}"], base_pageranks[ix])
+                    row = {
+                        "method": method,
+                        "n_nodes": item["n_nodes"],
+                        "min_conn_per_node": item["min_conn_per_node"],
+                        "max_iter": item["max_iter"],
+                        "mse": mse
+                    }
+                    df = df.append(row, ignore_index=True)     
 
     return df
