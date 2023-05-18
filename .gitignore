@@ -5,3 +5,4 @@ backup/
 *.obj 
 *.pyd
 build/
+env/
