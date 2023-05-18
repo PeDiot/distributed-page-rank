@@ -34,35 +34,35 @@ def main(type: str, hyperparam: str):
             n_repeat=cfg["n_repeat"])
         to_json(results_base, "backup", f"base_{hyperparam}.json")
 
-        # results_numpy = exp.run(
-        #     pagerank_method=compute_pagerank_numpy, 
-        #     damping_factor=cfg["damping_factor"], 
-        #     n_repeat=cfg["n_repeat"])
-        # to_json(results_numpy, "backup", f"numpy_{hyperparam}.json")
+        results_numpy = exp.run(
+            pagerank_method=compute_pagerank_numpy, 
+            damping_factor=cfg["damping_factor"], 
+            n_repeat=cfg["n_repeat"])
+        to_json(results_numpy, "backup", f"numpy_{hyperparam}.json")
 
-        # results_cython = exp.run(
-        #   pagerank_method=compute_pagerank_cython, 
-        #   damping_factor=cfg["damping_factor"], 
-        #   n_repeat=cfg["n_repeat"], 
-        #   num_threads=cfg["num_threads"])
-        # to_json(results_cython, "backup", f"cython_{hyperparam}.json")
+        results_cython = exp.run(
+          pagerank_method=compute_pagerank_cython, 
+          damping_factor=cfg["damping_factor"], 
+          n_repeat=cfg["n_repeat"], 
+          num_threads=cfg["num_threads"])
+        to_json(results_cython, "backup", f"cython_{hyperparam}.json")
 
     elif type == "eval":
         base_results = from_json("backup", f"base_{hyperparam}.json")
         numpy_results = from_json("backup", f"numpy_{hyperparam}.json")
-        # cython_results = from_json("backup", f"cython_{hyperparam}.json")
+        cython_results = from_json("backup", f"cython_{hyperparam}.json")
         gpu_results = from_json("backup", f"gpu_{hyperparam}.json")
 
         base_time_table = make_computation_time_table(base_results, "base")
         numpy_time_table = make_computation_time_table(numpy_results, "numpy")
-        # cython_time_table = make_computation_time_table(cython_results, "cython")
+        cython_time_table = make_computation_time_table(cython_results, "cython")
         gpu_time_table = make_computation_time_table(gpu_results, "gpu")
 
         mse_table = make_mse_table(
             {
                 "base": base_results,
                 "numpy": numpy_results, 
-                # "cython": cython_results, 
+                "cython": cython_results, 
                 "gpu": gpu_results
             }
         )
@@ -83,7 +83,7 @@ def main(type: str, hyperparam: str):
             results=[
                 base_time_table, 
                 numpy_time_table, 
-                # cython_time_table,
+                cython_time_table,
                 gpu_time_table
             ], 
             x_var=hyperparam, 
