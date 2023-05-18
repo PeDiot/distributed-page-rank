@@ -60,6 +60,7 @@ def compute_pagerank_gpu(graph_coo: scipy.sparse.coo_matrix, damping_factor: flo
             block=(block_size, 1, 1), 
             grid=(grid_size, 1))
         
+        # Freeze CPU until GPU is done
         cuda.Context.synchronize()
 
     pagerank_sum = np.sum(pagerank_vector)
