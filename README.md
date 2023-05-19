@@ -1,8 +1,16 @@
 # Distributed PageRank algorithm 
 
-See [`notebook_gpu`](https://drive.google.com/file/d/1rNhbZQfeArP8kCoHw2yuxpTgE_mHOudy/view?usp=sharing) for the PageRank GPU implementation.
+## Gettind started
+
+1. Clone the repository 
+
+```git
+git clone 
+```
 
 ## Description
+
+The main part of the project lies in the [`pagerank`](src/pagerank/) module which implements differents PageRank computation methods. 
 
 ```
 src/
@@ -18,6 +26,7 @@ src/
     └── pagerank_gpu.py
 ```
 
+
 | File       | Description                                             |
 |-------------------|---------------------------------------------------------|
 | `backup.py`         | Save files to `json`, load from `json` and `yaml`                      |
@@ -29,3 +38,5 @@ src/
 | `pagerank_numpy.py` | Vectorized PageRank algorithm using `NumPy`        |
 | `pagerank_cython.py`| Parallelized (CPU) PageRank algorithm using `Cython` and `OpenMP`       |
 | `pagerank_gpu.py`   | Parallelized (GPU) PageRank algorithm using `pycuda`          |
+
+See [`notebook_gpu`](https://drive.google.com/file/d/1rNhbZQfeArP8kCoHw2yuxpTgE_mHOudy/view?usp=sharing) for the PageRank GPU implementation.
