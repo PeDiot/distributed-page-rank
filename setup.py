@@ -10,7 +10,7 @@ import numpy
 extensions = [
     Extension(
         name="pagerank_cython", 
-        sources=["pagerank_cython.pyx"],
+        sources=["src/pagerank/pagerank_cython.pyx"],
         include_dirs=[numpy.get_include()], 
         extra_compile_args=["-fopenmp"],        # /openmp for Windows     
         extra_link_args=["-fopenmp"]
