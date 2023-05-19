@@ -1,4 +1,4 @@
-# Distributed PageRank algorithm 
+# Distributed PageRank 
 
 ## Gettind started
 
