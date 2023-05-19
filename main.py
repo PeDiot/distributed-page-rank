@@ -52,10 +52,10 @@ def main(
 
         if "cython" in pagerank_methods:
             results_cython = exp.run(
-            pagerank_method=compute_pagerank_cython, 
-            damping_factor=cfg["damping_factor"], 
-            n_repeat=cfg["n_repeat"], 
-            num_threads=cfg["num_threads"])
+                pagerank_method=compute_pagerank_cython, 
+                damping_factor=cfg["damping_factor"], 
+                n_repeat=cfg["n_repeat"], 
+                num_threads=cfg["num_threads"])
             to_json(results_cython, "backup", f"cython_{hyperparam}.json")
 
     elif type == "eval":
