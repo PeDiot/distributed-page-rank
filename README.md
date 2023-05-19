@@ -4,13 +4,29 @@
 
 1. Clone the repository 
 
-```git
-git clone 
+```
+git clone https://github.com/PeDiot/distributed-page-rank.git
+```
+
+2. Install [`requirements`](requirements.txt)
+
+You can create a virtual environment before launching the command.
+
+```
+pip install -r requirements
+```
+
+3. Run [`setup`](setup.py) file 
+
+It is used to compile [`pagerank_cython`](src/pagerank/pagerank_cython.pyx) into an extension module.
+
+```
+python setup.py build_ext --inplace
 ```
 
 ## Description
 
-The main part of the project lies in the [`pagerank`](src/pagerank/) module which implements differents PageRank computation methods. 
+### Architecture
 
 ```
 src/
@@ -26,14 +42,12 @@ src/
     └── pagerank_gpu.py
 ```
 
+### PageRank methods
+
+The main part of the project lies in the [`pagerank`](src/pagerank/) module which implements differents PageRank computation methods.
 
 | File       | Description                                             |
 |-------------------|---------------------------------------------------------|
-| `backup.py`         | Save files to `json`, load from `json` and `yaml`                      |
-| `experiment.py`     | Prepare and run experiments to measure computation time and MSE               |
-| `graph.py`          | Make graph as adjacency matrix            |
-| `plots.py`          | Plot computation time & MSE                     |
-| `utils.py`         | Helper functions             |
 | `pagerank_base.py`  | Basic PageRank algorithm             |
 | `pagerank_numpy.py` | Vectorized PageRank algorithm using `NumPy`        |
 | `pagerank_cython.py`| Parallelized (CPU) PageRank algorithm using `Cython` and `OpenMP`       |
