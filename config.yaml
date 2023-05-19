@@ -1,0 +1,8 @@
+n_nodes: 1000  
+min_conn_per_node: .3
+max_iter: 1000                              
+damping_factor: .85
+n_repeat: 20
+num_threads: -1
+
+# Instructions: n_nodes, min_conn_per_node and max_iter are Union[int, List[int]]

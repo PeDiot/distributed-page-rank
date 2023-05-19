@@ -1,0 +1,8 @@
+__pycache__/
+notebook_gpu.ipynb
+backup/
+*.c 
+*.obj 
+*.pyd
+build/
+env/
