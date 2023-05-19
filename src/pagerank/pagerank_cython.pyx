@@ -4,7 +4,6 @@ cimport numpy as np
 cimport cython
 from cython.parallel import prange
 
-CPU_COUNT = 8
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
