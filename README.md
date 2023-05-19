@@ -24,6 +24,26 @@ It is used to compile [`pagerank_cython`](src/pagerank/pagerank_cython.pyx) into
 python setup.py build_ext --inplace
 ```
 
+4. Download the results from the experiment [here](https://drive.google.com/drive/folders/1UABC7J5kSZ_muW9rC5dkxyvPtCX_w-0i?usp=sharing). 
+
+5. Run [`main`](main.py) file
+
+The `eval` mode can be used to evaluate the downloaded results. 
+
+```
+Run an experiment or evaluate the results of an experiment.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t TYPE, --type TYPE  The type of the experiment. Either 'exp' or 'eval'.
+  -hp HYPERPARAM, --hyperparam HYPERPARAM
+                        The hyperparameter to evaluate. Either 'n_nodes', 'min_conn_per_node' or 'max_iter'.   
+  -pm PAGERANK_METHODS, --pagerank_methods PAGERANK_METHODS
+                        The pagerank methods to evaluate.
+  -ly LOG_Y, --log_y LOG_Y
+                        Whether to use a logarithmic y-axis or not.
+```
+
 ## Description
 
 ### Architecture
