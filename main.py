@@ -13,12 +13,19 @@ import rich
 import argparse
 
 
-def main(type: str, hyperparam: str, pagerank_methods: List[str] = ["base", "numpy", "cython", "gpu"]): 
+def main(
+    type: str, 
+    hyperparam: str, 
+    pagerank_methods: List[str],
+    log_y: bool=False
+): 
     """Run an experiment or evaluate the results of an experiment.
     
     Args:
         type (str): The type of the experiment. Either 'exp' or 'eval'.
-        hyperparam (str): The hyperparameter to evaluate. Either 'n_nodes', 'min_conn_per_node' or 'max_iter'."""
+        hyperparam (str): The hyperparameter to evaluate. Either 'n_nodes', 'min_conn_per_node' or 'max_iter'.
+        pagerank_methods (List[str]): The pagerank methods to evaluate. Possible values are 'base', 'numpy' or 'cython'.
+        log_y (bool, optional): Whether to use a logarithmic y-axis or not. Defaults to False."""
     
     cfg = load_config("config.yaml") 
     n_nodes, min_conn_per_node, max_iter = cfg["n_nodes"], cfg["min_conn_per_node"], cfg["max_iter"]
@@ -88,7 +95,9 @@ def main(type: str, hyperparam: str, pagerank_methods: List[str] = ["base", "num
             rich.print(mse_table)
             plot_mse(df=mse_table, x_var=hyperparam, file_name=figure_file_name)
 
-        plot_computation_times(results, x_var=hyperparam, file_name=figure_file_name)
+        if log_y:
+            figure_file_name = f"log_{figure_file_name}"
+        plot_computation_times(results, x_var=hyperparam, file_name=figure_file_name, log_y=log_y)
         
     else:
         raise ValueError("Invalid type. Must be either 'exp' or 'eval'.")
@@ -99,7 +108,8 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--type", help="The type of the experiment. Either 'exp' or 'eval'.", default="eval")
     parser.add_argument("-hp", "--hyperparam", help="The hyperparameter to evaluate. Either 'n_nodes', 'min_conn_per_node' or 'max_iter'.", default="n_nodes")
     parser.add_argument("-pm", "--pagerank_methods", help="The pagerank methods to evaluate.", default="base,numpy,cython,gpu")
+    parser.add_argument("-ly", "--log_y", help="Whether to use a logarithmic y-axis or not.", type=bool, default=False)
 
     args = parser.parse_args()
     pagerank_methods = args.pagerank_methods.split(",")
-    main(args.type, args.hyperparam, pagerank_methods)
+    main(args.type, args.hyperparam, pagerank_methods, args.log_y)
