@@ -107,7 +107,7 @@ class Experiment:
             }
             results.append(info)
 
-            key = f"{n_nodes}_{min_conn_per_node}_{max_iter}"
+            key = f"{n_nodes}_{min_conn_per_node}"
 
             if not key in self.graphs:
                 graph_coo = generate_random_adjacency_matrix(n_nodes=n_nodes, min_conn_per_node=min_conn_per_node)
