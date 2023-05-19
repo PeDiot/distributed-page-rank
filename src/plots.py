@@ -12,7 +12,8 @@ def plot_computation_times(
     title: Optional[str]=None, 
     file_name: Optional[str]=None, 
     fig_dims: Tuple=(18, 14), 
-    show_plot: bool=False
+    show_plot: bool=False, 
+    log_y: bool=False
 ) -> None:
     """Plots the computation times of different pagerank computation methods.
 
@@ -22,7 +23,8 @@ def plot_computation_times(
         title: The title of the plot.
         file_name: The file name to save the plot to. If None, the plot is not saved.
         fig_dims: The dimensions of the plot.
-        show_plot: Whether to show the plot or not."""
+        show_plot: Whether to show the plot or not.
+        log_y: Whether to use a logarithmic y-axis or not."""
     
     y_vars = [
         "min_time", 
@@ -42,6 +44,8 @@ def plot_computation_times(
 
     for y_var, ax in zip(y_vars, axes.flatten()):
         sns.lineplot(x=x_var, y=y_var, hue="method", data=df, ax=ax)
+        if log_y: 
+            ax.set_yscale("log")
 
     fig.delaxes(axes.flatten()[-1])
     
@@ -49,8 +53,10 @@ def plot_computation_times(
         save_path = f"figs/time"
         if not os.path.exists(save_path):
             os.makedirs(save_path)
+            
         save_path = os.path.join(save_path, file_name)
         plt.savefig(save_path)
+        print(f"Saved plot to {save_path}.")
 
     if show_plot:
         plt.show()
@@ -84,8 +90,10 @@ def plot_mse(
         save_path = f"figs/mse"
         if not os.path.exists(save_path):
             os.makedirs(save_path)
+            
         save_path = os.path.join(save_path, file_name)
         plt.savefig(save_path)
+        print(f"Saved plot to {save_path}.")
         
     if show_plot:
         plt.show()
